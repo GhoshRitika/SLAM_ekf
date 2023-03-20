@@ -1,0 +1,91 @@
+<launch>
+
+  <arg name="cmd_src" default="teleop"/>
+  <arg name="robot" default="nusim"/>
+  <arg name="use_rviz" default="true"/>
+
+  <group if="$(eval '\'$(var use_rviz)\' == \'true\'')">
+    <group if="$(eval '\'$(var robot)\' == \'nusim\'')">
+        <node pkg="rviz2" exec="rviz2" args="-d $(find-pkg-share nuturtle_control)/config/default2.rviz"/>
+        <node pkg="nusim" exec="nusim" name="nusim" >
+          <param from="$(find-pkg-share nusim)/config/basic_world.yaml"/>
+          <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
+          <param name="draw_only" value="false"/>
+        </node>
+    </group>
+    <group if="$(eval '\'$(var robot)\' == \'none\'')">
+        <node pkg="rviz2" exec="rviz2" args="-d $(find-pkg-share nuturtle_control)/config/nuwall.rviz"/>
+        <node pkg="nusim" exec="nusim" name="nuwall" >
+          <param from="$(find-pkg-share nusim)/config/basic_world.yaml"/>
+          <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
+          <param name="draw_only" value="true"/>
+        </node>
+    </group>
+  </group>
+
+  <group if="$(eval '\'$(var use_rviz)\' != \'true\'')">
+    <group if="$(eval '\'$(var robot)\' == \'nusim\'')">
+        <node pkg="nusim" exec="nusim" name="nusim" >
+          <param from="$(find-pkg-share nusim)/config/basic_world.yaml"/>
+          <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
+          <param name="draw_only" value="false"/>
+        </node>
+    </group>
+    <group if="$(eval '\'$(var robot)\' == \'none\'')">
+        <node pkg="nusim" exec="nusim" name="nuwall" >
+          <param from="$(find-pkg-share nusim)/config/basic_world.yaml"/>
+          <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
+          <param name="draw_only" value="true"/>
+        </node>
+    </group>
+  </group>
+
+  <node pkg="numsr_turtlebot" exec="numsr_turtlebot" name="numsr_turtlebot" if="$(eval '\'$(var robot)\' == \'localhost\'')" />
+  <node pkg="hls_lfcd_lds_driver" exec="hlds_laser_publisher" if="$(eval '\'$(var robot)\' == \'localhost\'')" />
+
+  <node name="tf" pkg="tf2_ros" exec="static_transform_publisher" args="--x 0 --y -0 --z 0 --roll 0 --pitch 0 --yaw 0 --frame-id nusim/world --child-frame-id odom"/>
+
+  <include file="$(find-pkg-share nuturtle_description)/launch/load_one.launch.py">  
+    <arg name="use_rviz" value="false" />
+    <arg name="use_jsp" value="false" />
+    <arg name="color" value="blue" />
+  </include>
+
+  <include file="$(find-pkg-share nuturtle_description)/launch/load_one.launch.py" if="$(eval '\'$(var robot)\' == \'nusim\'')" >
+    <arg name="use_rviz" value="false" />
+    <arg name="use_jsp" value="true" />
+    <arg name="color" value="red" />
+  </include>
+
+  <node pkg="teleop_twist_keyboard" exec="teleop_twist_keyboard" name="teleop" output="screen" launch-prefix="xterm -e" if="$(eval '\'$(var cmd_src)\' == \'teleop\'')" />
+
+  <node pkg="nuturtle_control" exec="circle" name="circle" if="$(eval '\'$(var cmd_src)\' == \'circle\'')">
+    <param name="frequency" value="100"/>
+    <remap from="joint_states" to="blue/joint_states"/>
+  </node>
+
+
+    <group if="$(eval '\'$(var robot)\' == \'nusim\'')">
+      <node pkg="nuturtle_control" exec="turtlecontrol" name="turtlecontrol">
+        <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
+        <remap from="wheel_cmd" to="red/wheel_cmd"/>
+        <remap from="joint_states" to="blue/joint_states"/>
+        <remap from="sensor_data" to="red/sensor_data"/>
+      </node>
+    </group>
+    <group if="$(eval '\'$(var robot)\' != \'nusim\'')">
+      <node pkg="nuturtle_control" exec="turtlecontrol" name="turtlecontrol">
+        <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
+        <remap from="joint_states" to="blue/joint_states"/>
+      </node>
+    </group>
+
+  <node pkg="nuturtle_control" exec="odometry" name="odometry">
+    <param from="$(find-pkg-share nuturtle_description)/config/diff_params.yaml"/>
+    <param name="body_id" value="blue/base_footprint"/>
+    <param name="odom_id" value="odom"/>
+    <param name="wheel_left" value="wheel_left_joint"/>
+    <param name="wheel_right" value="wheel_right_joint"/>
+    <remap from="joint_states" to="blue/joint_states"/>
+  </node>
+</launch>

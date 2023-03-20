@@ -1,0 +1,7 @@
+<map id="include/turtlelib/diff_drive.hpp" name="include/turtlelib/diff_drive.hpp">
+<area shape="rect" id="node1" title="models the kinematics of a differential drive robot with a given wheel dimensions." alt="" coords="52,5,201,47"/>
+<area shape="rect" id="node2" href="$rigid2d_8hpp.html" title="Two&#45;dimensional rigid body transformations." alt="" coords="51,95,202,121"/>
+<area shape="rect" id="node3" title=" " alt="" coords="5,169,69,196"/>
+<area shape="rect" id="node4" title=" " alt="" coords="94,169,159,196"/>
+<area shape="rect" id="node5" title=" " alt="" coords="183,169,246,196"/>
+</map>

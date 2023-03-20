@@ -1,0 +1,17 @@
+<launch>
+  <arg name="cmd_src" default="teleop"/>
+  <arg name="robot" default="nusim"/>
+  <arg name="use_rviz" default="true"/>
+
+  <node pkg="rviz2" exec="rviz2" args="-d $(find-pkg-share nuslam)/config/landmarks.rviz" if="$(eval '\'$(var use_rviz)\' == \'true\'')" /> 
+  
+  <include file="$(find-pkg-share nuslam)/launch/slam.launch.xml" if="$(eval '\'$(var robot)\' == \'nusim\'')" >
+    <arg name="use_rviz" value="false" />
+    <arg name="robot" value="nusim"/>
+    <arg name="cmd_src" value="$(var cmd_src)"/>
+    <arg name="sensor" value="false"/>
+  </include>
+
+  <node pkg="nuslam" exec="landmarks" name="landmarks" if="$(eval '\'$(var robot)\' == \'nusim\'')" />
+
+</launch>
