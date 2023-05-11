@@ -152,6 +152,7 @@ private:
     odom_.twist.twist.angular.z = Vb_.w;
     wright_prev_ = msg.position.at(0);
     wleft_prev_ = msg.position.at(1);
+    odom_pub_->publish(odom_);
 
     geometry_msgs::msg::TransformStamped t;
 
@@ -165,7 +166,6 @@ private:
     t.transform.rotation.z = theta.z();
     t.transform.rotation.w = theta.w();
     tf_odom_green_->sendTransform(t);
-    odom_pub_->publish(odom_);
 
     turtlelib::Transform2D T_or({q_.x, q_.y}, q_.theta);
     turtlelib::Transform2D T_mo = T_mr*T_or.inv();
@@ -206,7 +206,7 @@ private:
     // call prediction
     prediction();
     // CORRECTION calculation
-    for(long unsigned int i = 0; i < msg.markers.size(); i++){
+    for(int i = 0; i < (int)msg.markers.size(); i++){
       visualization_msgs::msg::Marker s_marker = msg.markers.at(i);
       // check if action is delete or not
       if (s_marker.action != visualization_msgs::msg::Marker::DELETE){
@@ -245,7 +245,7 @@ private:
         arma::mat R_i=arma::mat(2, 2, arma::fill::eye); // COVARIANCE MATRIX
         R_i(0,0)=0.1; // 1.0;
         R_i(1,1)=0.1; //1.0;
-        arma::mat temp = (H_i*sys_covar_p*H_i.t()) + R_i;
+        // arma::mat temp = (H_i*sys_covar_p*H_i.t()) + R_i;
         arma::mat K_i = (sys_covar_p * H_i.t()) * ((H_i*sys_covar_p*H_i.t()) + R_i).i();
         // correct/update system state prediction
         arma::colvec difference = zt_i - zcapt_i;
@@ -319,13 +319,13 @@ private:
     arma::colvec z_i =arma::colvec(2, arma::fill::zeros);
     z_i.at(0) = r_i;
     z_i.at(1) = phi_i;
-    temp(2*j + 3) = temp(1)+ (r_i*cos(phi_i + temp(0)));
-    temp(2*j + 4)= temp(2) + (r_i*sin(phi_i + temp(0)));
+    temp(2*j + 3) = temp(1)+ (r_i*cos(turtlelib::normalize_angle(phi_i + temp(0))));
+    temp(2*j + 4)= temp(2) + (r_i*sin(turtlelib::normalize_angle(phi_i + temp(0))));
     arma::vec dist=arma::vec(j+1, arma::fill::zeros);
     for(int k=0; k<j+1; k++){
       double del_xk = temp(2*k+3) - temp(1);
       double del_yk = temp(2*k+4) - temp(2);
-      double d_k = (del_xk*del_xk )+ (del_yk*del_yk);
+      double d_k = (del_xk*del_xk ) + (del_yk*del_yk);
       double rcap_k = std::sqrt(d_k), phicap_k = turtlelib::normalize_angle(std::atan2(del_yk, del_xk) - temp.at(0));
       arma::colvec z_k=arma::colvec(2, arma::fill::zeros);
       z_k(0) = rcap_k;
@@ -341,26 +341,33 @@ private:
       H_k(1, 2*k+3) = -del_yk/d_k;
       H_k(1, 2*k+4) = del_xk/d_k;
       arma::mat R_k=arma::mat(2, 2, arma::fill::eye);
-      R_k(0,0)=0.1;
-      R_k(1,1)=0.1;
+      R_k(0,0)=1.0;
+      R_k(1,1)=1.0;
       arma::mat psi = (H_k*sys_covar_p*H_k.t()) + R_k;
-      arma::mat m_dist=(z_i-z_k).t()*inv(psi)*(z_i-z_k);
+      arma::colvec diff = z_i - z_k;
+      diff(1) = turtlelib::normalize_angle(diff(1));
+      arma::mat m_dist=(diff).t()*psi.i()*(diff);
       double maha = m_dist(0,0);
-      RCLCPP_INFO_STREAM(get_logger(), "maha" << maha);
+      // RCLCPP_INFO_STREAM(get_logger(), "maha" << maha);
       if(k==j){
         maha=thresh;
         }
       dist(k)=maha;
     }
-    int dstar =arma::index_min(dist);
+    int dstar = arma::index_min(dist);
+    RCLCPP_INFO_STREAM(get_logger(), "dist: " << dist);
+    RCLCPP_INFO_STREAM(get_logger(), "min: " << dstar);
+    if(dist(dstar)!=arma::min(dist)){
+       RCLCPP_INFO_STREAM(get_logger(), "WRONG!!!!!!!!!!!!!");
+    }
     if(dstar==j){
-    sys_state_p(2*j+3)= sys_state_p(1)+ (r_i*cos(phi_i + sys_state_p(0)));
-    sys_state_p(2*j+4)= sys_state_p(2) + (r_i*sin(phi_i + sys_state_p(0)));
-    count ++;
-    return j;
+      sys_state_p(3+2*j)= sys_state_p(1)+ (r_i*cos(phi_i + sys_state_p(0)));
+      sys_state_p(4+2*j)= sys_state_p(2) + (r_i*sin(phi_i + sys_state_p(0)));
+      count ++;
+      return j;
     }
     else{
-    return dstar;
+      return dstar;
     }
   }
 

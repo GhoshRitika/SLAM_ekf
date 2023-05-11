@@ -8,7 +8,7 @@ This repository consists of several ROS packages
 - [nuturtle_control](https://github.com/ME495-Navigation/nuturtle-Ritika521/tree/main/nuturtle_control) - Controls the robot in real world and in simulation.
 - [nuslam](https://github.com/ME495-Navigation/nuturtle-Ritika521/tree/main/nuslam) - Implements EKF to visualize the robot doing slam in simulation.
 
-    [Turtlebot_simulation.mp4](https://user-images.githubusercontent.com/60728026/217688212-0d05f264-89fa-48e9-8433-4c95c98bdbc9.mp4)
+    [Turtlebot_simulation.mp4](https://github.com/GhoshRitika/SLAM_ekf/assets/60728026/c4f2ffc3-4420-45d8-8907-f8caff324a24)
 
     [Turtlebot_realworld](https://user-images.githubusercontent.com/60728026/217689574-8d78a9b8-6175-47cf-8473-8954e2625b56.mp4)
 
