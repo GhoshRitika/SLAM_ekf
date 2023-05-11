@@ -10,7 +10,7 @@ This repository consists of several ROS packages
 
     [Turtlebot_simulation.mp4](https://github.com/GhoshRitika/SLAM_ekf/assets/60728026/c4f2ffc3-4420-45d8-8907-f8caff324a24)
 
-    [Turtlebot_realworld](https://user-images.githubusercontent.com/60728026/217689574-8d78a9b8-6175-47cf-8473-8954e2625b56.mp4)
+    [Turtlebot_realworld](https://user-images.githubusercontent.com/60728026/217689574-8d78a9b8-6175-47cf-8473-8954e2625b56)
 
 	![EKFwithNoise](https://user-images.githubusercontent.com/60728026/224211956-4987d0ea-dc35-46b8-b597-9c5b150dbde8.png)
 
